@@ -54,7 +54,7 @@ class JobboleSpider(scrapy.Spider):
 
         content = response.css("div.entry").extract()[0]
         taglist = response.css("p.entry-meta-hide-on-mobile a::text").extract()
-        taglist = [element for element in taglist if not element.strip().endwith('评论')]
+        taglist = [element for element in taglist if not element.strip().endswith('评论')]
         tags = ','.join(taglist)
 
         article_item['url_object_id'] = get_md5(response.url)
