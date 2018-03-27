@@ -8,6 +8,9 @@ from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exporters import JsonItemExporter
 import codecs
 import json
+import MySQLdb
+import MySQLdb.cursors
+from twisted.enterprise import adbapi
 
 
 class ArticlespiderPipeline(object):
@@ -27,6 +30,55 @@ class JsonWithEncodingPipeline():
 
     def spider_closed(self,spider):
         self.file.close()
+
+
+#同步插入MySQL数据库
+class MysqlPipeline():
+    def __init__(self):
+        self.conn = MySQLdb.connect('localhost','root','root','article_spider',charset = 'utf8',use_unicode=True)
+        self.cursor = self.conn.cursor()
+
+    def process_item(self, item, spider):
+        insert_sql = '''
+        insert into jobbole_article(title,url,create_date,fav_nums) VALUES (%s,%s,%s,%s)
+        '''
+        self.cursor.execute(insert_sql,(item['title'],item['url'],item['create_date'],item['fav_nums'],))
+        self.conn.commit()
+
+
+class MysqlTwistedPipeline():
+    def __init__(self,dbpool):
+        self.dbpool = dbpool
+
+    @classmethod
+    def from_settings(cls,settings):
+        dbparms = dict(
+            host = settings['MYSQL_HOST'],
+            db = settings['MYSQL_DBNAME'],
+            user = settings['MYSQL_USER'],
+            passwd = settings['MYSQL_PASSWORD'],
+            charset='utf8',
+            cursorclass = MySQLdb.cursors.DictCursor,
+            use_unicode=True
+        )
+
+        dbpool = adbapi.ConnectionPool('MySQLdb',**dbparms)
+        return cls(dbpool)
+
+    def process_item(self, item, spider):
+        #使用twisted将MySQL插入变成异步执行
+        query = self.dbpool.runInteraction(self.do_insert,item)
+        query.addErrback(self.handle_error) #处理异常
+
+    def handle_error(self,failure):
+        print(failure)
+
+    def do_insert(self,cursor,item):
+        #执行具体的插入
+        insert_sql = '''
+                insert into jobbole_article(title,url,create_date,fav_nums) VALUES (%s,%s,%s,%s)
+                '''
+        cursor.execute(insert_sql, (item['title'], item['url'], item['create_date'], item['fav_nums'],))
 
 
 class JsonExporterPipeline():

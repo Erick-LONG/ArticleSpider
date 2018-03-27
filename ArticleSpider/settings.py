@@ -65,9 +65,11 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'ArticleSpider.pipelines.JsonExporterPipeline': 2,
-    #'scrapy.pipelines.images.ImagesPipeline':1,
-    'ArticleSpider.pipelines.ArticleImagePipeline':1
+   # 'ArticleSpider.pipelines.JsonExporterPipeline': 2,
+   #  #'scrapy.pipelines.images.ImagesPipeline':1,
+   #  'ArticleSpider.pipelines.ArticleImagePipeline':1,
+   #  'ArticleSpider.pipelines.MysqlPipeline':3,
+    'ArticleSpider.pipelines.MysqlTwistedPipeline':3,
 }
 
 IMAGES_URLS_FIELD='front_image_url' #下载图片的字段
@@ -97,3 +99,8 @@ IMAGES_STORE = os.path.join(project_dir,'images')#下载图片存放路径
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+MYSQL_HOST = 'localhost'
+MYSQL_DBNAME = 'article_spider'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'root'
