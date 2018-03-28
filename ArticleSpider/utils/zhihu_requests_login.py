@@ -19,6 +19,16 @@ header = {
 }
 
 
+def is_login():
+    #通过个人中心状态码判断页面是否为登录状态
+    inbox_url = 'http://www.zhihu.com/inbox'
+    response = session.get(inbox_url,headers = header,allow_redirects=False)
+    if response.status_code != 200:
+        return False
+    else:
+        return True
+
+
 def get_xsrf():
     #获取csrf_code
     response = session.get('http://www.zhihu.com',headers = header)
@@ -41,11 +51,20 @@ def zhihu_login(account,password):
     #知乎登录
     if re.match('^1\d{10}',account):
         print('手机号码登录')
-        post_url = ''
+        post_url = 'http://www.zhihu.com/login/phone_num'
         post_data = {
             '_xsrf':get_xsrf(),
             'phone_num':account,
             'password':password,
         }
-        response_text = session.post(post_url,post_data,headers=header)
-        session.cookies.save()
+    else:
+        if "@" in account:
+            print('邮箱方式登录')
+            post_url = 'http://www.zhihu.com/login/email'
+            post_data = {
+                '_xsrf': get_xsrf(),
+                'email': account,
+                'password': password,
+            }
+    response_text = session.post(post_url, post_data, headers=header)
+    session.cookies.save()
