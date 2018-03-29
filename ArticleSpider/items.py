@@ -75,3 +75,31 @@ class JobBoleArticleItem(scrapy.Item):
         input_processor=MapCompose(remove_comment_tags),
         output_processor = Join(',')
     )
+
+
+class ZhihuQuestionItem(scrapy.Item):
+    #知乎的问题item
+    zhihu_id=scrapy.Field()
+    topics =scrapy.Field()
+    url =scrapy.Field()
+    title =scrapy.Field()
+    content=scrapy.Field()
+    answer=scrapy.Field()
+    comment_nums =scrapy.Field()
+    watch_user_num =scrapy.Field()
+    click_num =scrapy.Field()
+    crawl_time =scrapy.Field()
+
+
+class ZhihuAnswerItem(scrapy.Item):
+    # 知乎的问题回答item
+    zhihu_id = scrapy.Field()
+    url = scrapy.Field()
+    question_id =scrapy.Field()
+    author_id=scrapy.Field()
+    content=scrapy.Field()
+    parise_num=scrapy.Field()
+    comment_nums = scrapy.Field()
+    create_time =scrapy.Field()
+    update_time =scrapy.Field()
+    crawl_time = scrapy.Field()
