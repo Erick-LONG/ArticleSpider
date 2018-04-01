@@ -40,13 +40,34 @@ class ZhihuSpider(scrapy.Spider):
         #处理question页面,并提出具体的question item
         if 'QuestionHeader-title' in response.text:
             #处理新版本
+            match_obj = re.match('(.*zhihu.com.question/(/d+).*)(/|$)', response.url)
+            if match_obj:
+                question_id = int(match_obj.group(2))
             item_loader = ItemLoader(item=ZhihuQuestionItem(),response=response)
             item_loader.add_css('title','h1.QuestionHeader-title::text')
             item_loader.add_css('content','.QuestionHeader-detail')
             item_loader.add_value('url',response.url)
-            item_loader.add_value()
+            item_loader.add_value('zhihu_id',question_id)
+            item_loader.add_css('answer_num', '.List-headerText span::text')
+            item_loader.add_css('comment_nums', '.QuestionHeader-actions button::text')
+            item_loader.add_css('watch_user_num', '.NumberBoard-value::text')
+            item_loader.add_css('topics', '.QuestionHeader-topics .Popover::text')
+            question_item = item_loader.load_item()
         else:
-            #处理旧版本
+            #处理旧版本页面item页面提取
+            match_obj = re.match('(.*zhihu.com.question/(/d+).*)(/|$)', response.url)
+            if match_obj:
+                question_id = int(match_obj.group(2))
+            item_loader = ItemLoader(item=ZhihuQuestionItem(), response=response)
+            item_loader.add_css('title', '.zh-question-title h2::text')
+            item_loader.add_css('content', '#zh-question-detail')
+            item_loader.add_value('url', response.url)
+            item_loader.add_value('zhihu_id', question_id)
+            item_loader.add_css('answer_num', '#zh-question-answer-num::text')
+            item_loader.add_css('comment_nums', '#zh-question-meta-wrap a[name="addcomment"]::text')
+            item_loader.add_css('watch_user_num', '.#zh-question-side-header-wrap::text')
+            item_loader.add_css('topics', '.zm-tag-editor-labels a::text')
+            question_item = item_loader.load_item()
 
 
     def start_requests(self):
