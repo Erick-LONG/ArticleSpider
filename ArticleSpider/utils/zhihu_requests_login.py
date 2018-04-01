@@ -3,6 +3,7 @@ import requests
 import http.cookiejar as cookielib
 import re
 
+
 session = requests.session()
 session.cookies = cookielib.LWPCookieJar(filename='cookies.txt')
 
@@ -46,16 +47,35 @@ def get_index():
         f.write(response.text.encode('utf-8'))
     print('ok')
 
+def get_captcha():
+    import time
+    t= str(int(time.time()*1000))
+    captcha_url = "https://www.zhihu.com/api/v3/oauth/captcha?lang=cn"
+    t = session.get(captcha_url,headers=header)
+    with open('captcha.jpg','wb') as f:
+        f.write(t.content)
+        f.close()
+    from PIL import Image
+    try:
+        im = Image.open('captcha.jpg')
+        im.show()
+        im.close()
+    except :
+        pass
+    captcha = input('输入验证码：')
+    return captcha
 
 def zhihu_login(account,password):
     #知乎登录
     if re.match('^1\d{10}',account):
         print('手机号码登录')
         post_url = 'http://www.zhihu.com/login/phone_num'
+
         post_data = {
             '_xsrf':get_xsrf(),
             'phone_num':account,
             'password':password,
+            'captcha':get_captcha()
         }
     else:
         if "@" in account:

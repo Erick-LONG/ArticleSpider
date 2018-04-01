@@ -119,14 +119,36 @@ class ZhihuSpider(scrapy.Spider):
                 '_xsrf':xsrf,
                 'phone_num':'',
                 'password':'',
+                'captcha':''
             }
 
-            return [scrapy.FormRequest(
-                url=post_url,
-                formdata=post_data,
-                headers=self.header,
-                callback=self.check_login,
-            )]
+            import time
+            t = str(int(time.time() * 1000))
+            captcha_url = "https://www.zhihu.com/api/v3/oauth/captcha?lang=cn"
+            yield scrapy.Request(captcha_url,headers=self.header,meta={'post_data':post_data},callback=self.login_after_captcha())
+
+    def login_after_captcha(self,response):
+        with open('captcha.jpg', 'wb') as f:
+            f.write(response.body)
+            f.close()
+        from PIL import Image
+        try:
+            im = Image.open('captcha.jpg')
+            im.show()
+            im.close()
+        except:
+            pass
+        captcha = input('输入验证码：')
+
+        post_data = response.meta.get('post_data',{})
+        post_url = 'https://www.zhihu.com/login/phone_num'
+        post_data['captcha']=captcha
+        return [scrapy.FormRequest(
+            url=post_url,
+            formdata=post_data,
+            headers=self.header,
+            callback=self.check_login,
+        )]
 
     def check_login(self,response):
         #验证服务器的返回数据,判断是否成功
