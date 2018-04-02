@@ -10,6 +10,7 @@ from scrapy.loader import ItemLoader
 from scrapy.loader.processors import MapCompose,TakeFirst,Join
 from ArticleSpider.utils.common import extract_num
 from ArticleSpider.settings import SQL_DATE_FORMAT,SQL_DATETIME_FORMAT
+from w3lib.html import remove_tags
 
 
 class ArticlespiderItem(scrapy.Item):
@@ -153,6 +154,64 @@ class ZhihuAnswerItem(scrapy.Item):
         params = (self['zhihu_id'],self['url'],self['question_id'],
                   self['author_id'],self['content'],self['parise_num'],
                   self['comment_nums'], create_time, update_time,
+                  self['crawl_time'].strptime(SQL_DATETIME_FORMAT)
+                  )
+        return insert_sql, params
+
+def remove_splash(value):
+    #去掉工作城市de 斜杠
+    return value.replace('/','')
+
+def handel_jobaddr(value):
+    addr_list = value.split('\n')
+    addr_list = [ item.strip() for item in addr_list if item.strip() != '查看地图']
+    return ''.join(addr_list)
+
+class LagouJobItemLoader(ItemLoader):
+    #自定义ITEMloader
+    default_output_processor = TakeFirst()
+
+
+class LagouJobItem(scrapy.Item):
+    title = scrapy.Field()
+    url = scrapy.Field()
+    url_obj_id=scrapy.Field()
+    salary =scrapy.Field()
+    job_city =scrapy.Field(
+        input_processor=MapCompose(remove_splash),
+    )
+    work_years =scrapy.Field(
+        input_processor=MapCompose(remove_splash),
+    )
+    degree_need =scrapy.Field(
+        input_processor=MapCompose(remove_splash),
+    )
+    job_type =scrapy.Field()
+    publish_time =scrapy.Field()
+    job_advantage =scrapy.Field()
+    job_desc =scrapy.Field()
+    job_addr =scrapy.Field(
+        input_processor=MapCompose(remove_tags,handel_jobaddr),
+    )
+    company_name =scrapy.Field()
+    company_url =scrapy.Field()
+    tags =scrapy.Field(
+        input_processor=Join(',')
+    )
+    crawl_time = scrapy.Field()
+
+    def get_insert_sql(self):
+        #插入拉勾表
+        insert_sql = '''
+                        insert into lagou_job(title,url,question_id,author_id,content,parise_num,
+                        comment_nums,create_time,update_time,crawl_time)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                        ON duplicate key UPDATE content = VALUES (content),
+                        comment_nums = VALUES(comment_nums),update_time = VALUES (update_time)
+                    '''
+        params = (self['title'],self['url'],self['question_id'],
+                  self['author_id'],self['content'],self['parise_num'],
+                  self['comment_nums'],
                   self['crawl_time'].strptime(SQL_DATETIME_FORMAT)
                   )
         return insert_sql, params
