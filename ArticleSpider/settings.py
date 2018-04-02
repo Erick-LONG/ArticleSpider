@@ -52,9 +52,10 @@ ROBOTSTXT_OBEY = False
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'ArticleSpider.middlewares.ArticlespiderDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   'ArticleSpider.middlewares.RandomUserAgentMiddleware': 543,
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware':None,
+}
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
@@ -71,6 +72,7 @@ ITEM_PIPELINES = {
    #  'ArticleSpider.pipelines.MysqlPipeline':3,
     'ArticleSpider.pipelines.MysqlTwistedPipeline':3,
 }
+RANDOM_UA_TYPE='random'
 
 IMAGES_URLS_FIELD='front_image_url' #下载图片的字段
 
