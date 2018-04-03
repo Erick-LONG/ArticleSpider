@@ -19,6 +19,9 @@ class ZhihuSpider(scrapy.Spider):
         'Referer': 'https://www.zhihu.com',
         'User-Agent': agent,
     }
+    custom_settings = {
+        'COOKIES_ENABLED': True
+    }
 
     def parse(self, response):
         '''
