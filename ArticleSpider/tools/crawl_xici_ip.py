@@ -38,9 +38,36 @@ def crawl_ips():
 
 class GetIp():
 
+    def delete_ip(self,ip):
+        delete_sql = """
+        delete from proxy_ip where ip ={0}
+        """.format(ip)
+        cursor.execute(delete_sql)
+        conn.commit()
+        return True
+
     def judge_ip(self,ip,port):
         #判断IP是否可用
         http_url = 'http://www.baidu.com'
+        proxy_url = 'http://{}:{}'.format(ip,port)
+        try:
+            proxy_dict = {
+                'http':proxy_url,
+            }
+            response = requests.get(http_url,proxies = proxy_dict)
+        except Exception as e:
+            print('invalid ip and port')
+            self.delete_ip(ip)
+            return False
+        else:
+            code = response.status_code
+            if code >=200 and code <300:
+                print('effective ip')
+                return True
+            else:
+                print('invaild ip and port')
+                self.delete_ip(ip)
+                return False
 
     def get_romdom_ip(self):
         #从数据库随机获取可用ip
@@ -51,4 +78,9 @@ class GetIp():
         for ip_info in cursor.fetchall():
             ip = ip_info[0]
             port = ip_info[1]
+            judge_re = self.judge_ip(ip,port)
+            if judge_re:
+                return 'http://{}{:}'.format(ip,port)
+            else:
+                return self.get_romdom_ip()
 crawl_ips()

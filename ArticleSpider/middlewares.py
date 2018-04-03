@@ -7,7 +7,7 @@
 
 from scrapy import signals
 from fake_useragent import UserAgent
-
+from ArticleSpider.tools.crawl_xici_ip import GetIp
 
 
 class ArticlespiderSpiderMiddleware(object):
@@ -122,5 +122,10 @@ class RandomUserAgentMiddleware():
             return getattr(self.ua,self.ua_type)
 
         request.headers.setdefault('User-Agent',get_ua())
-        #request.meta['proxy'] = ''
 
+
+class RandomProxyMiddleware():
+    #动态设置IP代理
+    def process_request(self, request, spider):
+        gget_ip = GetIp()
+        request.meta['proxy']=gget_ip.get_romdom_ip()
