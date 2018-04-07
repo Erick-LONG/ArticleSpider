@@ -18,20 +18,28 @@ class JobboleSpider(scrapy.Spider):
     start_urls = ['http://blog.jobbole.com/all-posts']
 
     def __init__(self):
+        self.fail_urls = []
         self.browser = webdriver.Chrome(executable_path='/usr/local/bin/chromedriver')
         super(JobboleSpider,self).__init__()
         dispatcher.connect(self.spider_closed,signals.spider_closed)
+
 
     def spider_closed(self,spider):
         #当爬虫退出的时候关闭Chrome
         print('spider closed')
         self.browser.quit()
 
+    #收集伯乐在线所有404的URL以及404页面数
+    handel_httpstatus_list = [404]
+
     def parse(self, response):
         '''
         获取文章列表页中的文章URL并交给scrapy下载后并解析
         获取下一页URL并交给scrapy进行下载,下载完成后交给parse
         '''
+        if response.status == 404:
+            self.fail_urls.append(response.url)
+            self.crawler.stats.inc_value('fail_url')
 
         #解析列表页中所有文章url
         post_nodes = response.css('#archive .floated-thumb .post-thumb a')
