@@ -141,3 +141,11 @@ class JsPageMiddleware():
             time.sleep(3)
             print('访问:{}'.format(request.url))
             return HtmlResponse(url=spider.browser.current_url,body=spider.browser.page_source,encoding='utf-8',request=request)
+
+
+# 无界面操作
+from selenium import webdriver
+from pyvirtualdisplay import Display
+display = Display(visible=0,size=(800,600))
+display.start()
+browser = webdriver.Chrome(executable_path='/usr/local/bin/chromedriver')
