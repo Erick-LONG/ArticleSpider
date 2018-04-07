@@ -22,7 +22,7 @@ class JobboleSpider(scrapy.Spider):
         self.browser = webdriver.Chrome(executable_path='/usr/local/bin/chromedriver')
         super(JobboleSpider,self).__init__()
         dispatcher.connect(self.spider_closed,signals.spider_closed)
-
+        dispatcher.connect(self.handel_spider_closed, signals.spider_closed)
 
     def spider_closed(self,spider):
         #当爬虫退出的时候关闭Chrome
@@ -31,6 +31,11 @@ class JobboleSpider(scrapy.Spider):
 
     #收集伯乐在线所有404的URL以及404页面数
     handel_httpstatus_list = [404]
+
+    def handel_spider_closed(self,spider,reson):
+        self.crawler.stats.set_value('failed_urls',','.join(self.fail_urls))
+        pass
+
 
     def parse(self, response):
         '''
