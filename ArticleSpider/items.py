@@ -11,7 +11,7 @@ from scrapy.loader.processors import MapCompose,TakeFirst,Join
 from ArticleSpider.utils.common import extract_num
 from ArticleSpider.settings import SQL_DATE_FORMAT,SQL_DATETIME_FORMAT
 from w3lib.html import remove_tags
-
+from ArticleSpider.models.es_types import ArticleType
 
 class ArticlespiderItem(scrapy.Item):
     # define the fields for your item here like:
@@ -86,6 +86,24 @@ class JobBoleArticleItem(scrapy.Item):
                     '''
         params = (self['title'], self['url'], self['create_date'], self['fav_nums'])
         return insert_sql,params
+
+    def save_to_es(self):
+        article = ArticleType()
+        article.title = self['title']
+        article.create_date = self['create_date']
+        article.content = remove_tags(self['content'])
+        if 'front_image_path' in self:
+            article.front_image_path = self['front_image_path']
+        article.front_image_url = self['front_image_url']
+        article.praise_nums = self['praise_nums']
+        article.fav_nums = self['fav_nums']
+        article.comment_nums = self['comment_nums']
+        article.url = self['url']
+        article.tags = self['tags']
+        article.meta.id = self['url_object_id']
+
+        article.save()
+        return
 
 
 class ZhihuQuestionItem(scrapy.Item):

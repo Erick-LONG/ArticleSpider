@@ -12,7 +12,6 @@ import MySQLdb
 import MySQLdb.cursors
 from twisted.enterprise import adbapi
 
-
 class ArticlespiderPipeline(object):
     def process_item(self, item, spider):
         return item
@@ -101,4 +100,13 @@ class ArticleImagePipeline(ImagesPipeline):
             for ok,value in results:
                 image_file_path = value['path']
             item['front_image_path'] = image_file_path
+        return item
+
+
+class ElasticsearchPipeline():
+    #将数据写入到es中
+    def process_item(self, item, spider):
+        #将item转换为es的数据
+
+        item.save_to_es()
         return item
